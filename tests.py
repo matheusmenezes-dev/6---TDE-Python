@@ -25,19 +25,28 @@ class TestBlock(unittest.TestCase):
 
 class TestBlockChain(unittest.TestCase):
     def setUp(self) -> None:
-        self.blockchain = BlockChain(new=False)
+        self.new = False
+        self.blockchain = BlockChain(self.new)
         self.test_wallet1 = Wallet()
+        self.old_wallet = """
+        657f3e19eaa2eb029897f6bd35f57a0f9aae64cdf94741bef3296d5fb66ea145:b5c367db2773ba95b1a7b00ae7bbb0bfa5bcbecf842c3b85dfda07ab98d95cde
+        """
     
     def test_add_transaction(self):
-        #self.blockchain.add_transaction(self.blockchain.genesis_wallet.key_pair, self.test_wallet1.public_key, 10)
-        self.blockchain.add_transaction("6131559a8b2ec1f0d362aceb1466f9bb83f6d2ae9c455f531e59e7fcc0a2e132:db0faa01cdc7d92fe5e706232141d92077f7dbca29992f65559536897bc6d355", self.test_wallet1.public_key, 10)
+        if self.new: self.skipTest()
+        self.blockchain.add_transaction(self.old_wallet, self.test_wallet1.public_key, 10)
         self.blockchain.create_block()
         self.assertEqual(self.blockchain.check_balance(self.test_wallet1.public_key), 10)
-        #self.assertEqual(self.blockchain.check_balance(self.blockchain.genesis_wallet.public_key), 90)
 
-    def test_deserialize(self):
-        #self.blockchain.serialized_chain
-        print(self.blockchain.last_block)
+    def test_new_blockchain(self):
+        if not self.new: self.skipTest()
+        self.blockchain.add_transaction(self.blockchain.genesis_wallet.key_pair, self.test_wallet1.public_key, 10)
+        self.blockchain.create_block()
+        self.assertEqual(self.blockchain.check_balance(self.test_wallet1.public_key), 10)
+        self.assertEqual(self.blockchain.check_balance(self.blockchain.genesis_wallet.public_key), 90)
+
+    def test_chain(self):
+       pass 
         
 class TestWallet(unittest.TestCase):
     def test_verification(self):
