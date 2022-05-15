@@ -40,10 +40,16 @@ class TestBlockChain(unittest.TestCase):
 
     def test_new_blockchain(self):
         if not self.new: self.skipTest()
-        self.blockchain.add_transaction(self.blockchain.genesis_wallet.key_pair, self.test_wallet1.public_key, 10)
+
+        self.blockchain.add_transaction(
+            sender=self.blockchain.genesis_wallet.key_pair,
+            recipient=self.test_wallet1.public_key,
+            amount=10)
         self.blockchain.create_block()
+
         self.assertEqual(self.blockchain.check_balance(self.test_wallet1.public_key), 10)
-        self.assertEqual(self.blockchain.check_balance(self.blockchain.genesis_wallet.public_key), 90)
+        self.assertEqual(
+            self.blockchain.check_balance(self.blockchain.genesis_wallet.public_key), 90)
 
     def test_chain(self):
        pass 

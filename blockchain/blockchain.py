@@ -52,7 +52,8 @@ class BlockChain:
     def create_block(self):
         index = self.last_block.index + 1
         prev_hash = self.last_block.hash
-        transactions = [transaction for transaction in self.__pending_transactions if self.verify_transaction(transaction)]  
+        transactions = [transaction for transaction in self.__pending_transactions
+            if self.verify_transaction(transaction)]  
         block = Block(index=index, prev_hash=prev_hash, transactions=transactions)
         self.append_to_chain(block)
          
@@ -70,7 +71,6 @@ class BlockChain:
     
     def append_to_chain(self, block:Block):
         self.__chain = self.chain
-        print(self.__chain)
         self.__chain.append(block)
         self.serialize_chain()
           
