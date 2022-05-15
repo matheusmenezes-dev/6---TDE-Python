@@ -24,17 +24,6 @@ class TestBlock(unittest.TestCase):
         print(f"HASH: {self.block.hash}")
         self.assertEqual(1, 1)
 
-class TestBlockChain(unittest.TestCase):
-    def test_new_chain(self):
-        chain_path='blockchain/chains/tempchain.json'
-        if os.path.isfile(chain_path): os.remove(chain_path)
-
-        blockchain = BlockChain(chain_path=chain_path) 
-        self.assertTrue(os.path.isfile(chain_path))
-        self.assertTrue(blockchain.last_block.hash, blockchain.blocks[0].hash)
-    
-
-        
 
 class TestWallet(unittest.TestCase):
     def test_verification(self):
@@ -46,6 +35,26 @@ class TestWallet(unittest.TestCase):
         wallet = Wallet()    
         self.assertTrue(Wallet.verify(wallet.key_pair))
     
+
+class TestBlockChain(unittest.TestCase):
+    def setUp(self) -> None:
+        chain_path='blockchain/chains/tempchain.json'
+        if os.path.isfile(chain_path): os.remove(chain_path)
+        self.blockchain = BlockChain(chain_path=chain_path) 
+
+    def test_new_chain(self):
+        self.assertTrue(self.blockchain.last_block.hash, self.blockchain.blocks[0].hash)
+    
+    def test_transaction(self):
+        recipient_wallet = Wallet()
+        self.blockchain.add_transaction(
+            self.blockchain.genesis_wallet.key_pair,
+            recipient=recipient_wallet.public_key,
+            amount=10)
+        self.blockchain.create_block()
+        self.assertEqual(self.blockchain.check_balance(recipient_wallet.public_key), 10)
+        self.assertEqual(
+            self.blockchain.check_balance(self.blockchain.genesis_wallet.public_key), 90)
 
     if __name__ == '__main__':
         unittest.main()
