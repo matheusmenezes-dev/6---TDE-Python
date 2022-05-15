@@ -4,9 +4,9 @@ from hashlib import sha256
 
 
 class Block:
-    def __init__(self, index:int, prev_hash:str, transactions:list) -> None:
+    def __init__(self, index:int, previous_hash:str, transactions:list) -> None:
         self.index = index
-        self.prev_hash = prev_hash
+        self.previous_hash = previous_hash
         self.transactions = transactions
         self.timestamp = str(datetime.now())
 

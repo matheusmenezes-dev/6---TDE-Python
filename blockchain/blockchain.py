@@ -1,19 +1,27 @@
 from blockchain.wallet import Wallet
 from blockchain.block import Block
 import json
+import os
 
 class BlockChain:
-    def __init__(self, new=False) -> None:
+    def __init__(self, chain_path) -> None:
+        self.__chain_path = chain_path
         self.__pending_transactions = []
-        if new: 
+        # Inicializa uma nova blockchain caso a blockchain indicada
+        # ainda não exista
+        if not os.path.isfile(self.__chain_path):
             self.genesis_wallet = Wallet()
-            # Bloco Genesis
-            self.genesis_block = Block(0, None, [{"sender": "master", "recipient": self.genesis_wallet.public_key, "amount": 100}])
-            self.append_to_chain(self.genesis_block)
+            self.genesis_block = Block(index=0, previous_hash=None, transactions=[{
+                "sender": "master",
+                "recipient": self.genesis_wallet.public_key,
+                "amount": 100
+                }])
+            with open(self.__chain_path, 'w') as f:
+               json.dump([self.genesis_block.__dict__], f) 
     
     @property
     def last_block(self):
-        return self.chain[-1]
+        return self.blocks[-1]
         
     @property
     def pending_transactions(self):
@@ -28,7 +36,7 @@ class BlockChain:
     
     def check_balance(self, wallet:str) -> int:
         balance = 0
-        for block in self.chain:
+        for block in self.blocks:
             for transaction in block.transactions:
                 if transaction["sender"] == wallet:
                    balance -= transaction["amount"]
@@ -55,22 +63,24 @@ class BlockChain:
         transactions = [transaction for transaction in self.__pending_transactions
             if self.verify_transaction(transaction)]  
         block = Block(index=index, prev_hash=prev_hash, transactions=transactions)
-        self.append_to_chain(block)
+        self.append_to_blocks(block)
          
-    def serialize_chain(self):
-        json_chain = [block.__dict__ for block in self.__chain]
-        with open('blockchain/blocks.json', 'w') as f:
-            print(len(json_chain))
-            json.dump(json_chain, f)
+    def serialize_blocks(self):
+        blocks = [block.__dict__ for block in self.__blocks]
+        with open(self.__chain_path, 'w') as f:
+            json.dump(blocks, f)
     
     @property
-    def chain(self):
-        with open('blockchain/blocks.json', 'r') as f:
-            serialized_chain = json.load(f)
-            return [Block(block["index"], block["prev_hash"], block["transactions"]) for block in serialized_chain]
+    def blocks(self):
+        with open(self.__chain_path, 'r') as f:
+            serialized_blocks = json.load(f)
+            return [Block(
+                block["index"],
+                block["previous_hash"],
+                block["transactions"]) for block in serialized_blocks]
     
-    def append_to_chain(self, block:Block):
-        self.__chain = self.chain
-        self.__chain.append(block)
-        self.serialize_chain()
+    def append_to_blocks(self, block:Block):
+        self.__blocks = self.blocks
+        self.__blocks.append(block)
+        self.serialize_blocks()
           
