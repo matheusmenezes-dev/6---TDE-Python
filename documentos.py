@@ -47,13 +47,13 @@ class CPF:
 
 class Documento:
     def __init__(self, cpf:str=None, cnpj:str=None) -> None:
-        self.cpf = self.validate_cpf(cpf)
-        self.cnpj = self.validate_cnpj(cnpj)
+        self.cpf = self.validar_cpf(cpf)
+        self.cnpj = self.validar_cnpj(cnpj)
 
         if not (self.cnpj or self.cpf):
             raise DocumentoInvalido("Não foi possivel validar um CPF ou CNPJ")
         
-    def validate_cpf(self, cpf):
+    def validar_cpf(self, cpf):
         cpf:CPF = CPF(cpf)
         return cpf if cpf.eh_valido else None
         
