@@ -21,10 +21,6 @@ class TestBlock(unittest.TestCase):
             },
         ]
         self.block = Block(index=1, previous_hash="abc123", transactions=mock_transactions)
-    
-    def test_hashing(self):
-        print(f"HASH: {self.block.hash}")
-        self.assertEqual(1, 1)
 
 
 class TestWallet(unittest.TestCase):
@@ -81,10 +77,10 @@ class TestBlockChain(unittest.TestCase):
         with open(self.chain_path, 'r') as f:
             blocks = json.load(f)
             bloco = blocks[0]
-            # Alterando o timestamp da blockchain 
-            bloco["timestamp"] = str(datetime.now())
-            with open(self.chain_path, 'w') as w:
-                json.dump(blocks, w)
+        # Alterando o timestamp da blockchain 
+        bloco["timestamp"] = str(datetime.now())
+        with open(self.chain_path, 'w') as w:
+            json.dump(blocks, w)
         self.assertFalse(self.blockchain.is_valid)
 
     if __name__ == '__main__':
