@@ -79,11 +79,7 @@ class BlockChain:
     def blocks(self):
         with open(self.__chain_path, 'r') as f:
             serialized_blocks = json.load(f)
-            return [Block(
-                block["index"],
-                block["previous_hash"],
-                block["transactions"],
-                block["timestamp"]) for block in serialized_blocks]
+            return [Block.from_dict(block) for block in serialized_blocks]
     
     def append_to_blocks(self, block:Block):
         self.__blocks = self.blocks

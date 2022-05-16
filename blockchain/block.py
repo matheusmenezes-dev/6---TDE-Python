@@ -21,6 +21,6 @@ class Block:
         return json.dumps(self.__dict__)
     
     @staticmethod
-    def from_dict(block):
-       return Block(block["index"], block["prev_hash"], block["transactions"]) 
+    def from_dict(block:dict):
+       return Block(block["index"], block["previous_hash"], block["transactions"], block["timestamp"]) 
     
