@@ -11,17 +11,21 @@ class BlockChain:
         # ainda não exista
         if not os.path.isfile(self.__chain_path):
             self.genesis_wallet = Wallet()
-            self.genesis_block = Block(index=0, previous_hash=None, transactions=[{
+            self.__genesis_block = Block(index=0, previous_hash=None, transactions=[{
                 "sender": "master",
                 "recipient": self.genesis_wallet.public_key,
                 "amount": 100
                 }])
             with open(self.__chain_path, 'w') as f:
-               json.dump([self.genesis_block.__dict__], f) 
+               json.dump([self.__genesis_block.__dict__], f) 
     
     @property
-    def last_block(self):
+    def last_block(self) -> Block:
         return self.blocks[-1]
+    
+    @property
+    def genesis_block(self) -> Block:
+        return self.blocks[0]
         
     @property
     def pending_transactions(self):
@@ -64,6 +68,7 @@ class BlockChain:
             if self.verify_transaction(transaction)]  
         block = Block(index=index, previous_hash=previous_hash, transactions=transactions)
         self.append_to_blocks(block)
+        self.__pending_transactions = []
          
     def serialize_blocks(self):
         blocks = [block.__dict__ for block in self.__blocks]
@@ -77,10 +82,21 @@ class BlockChain:
             return [Block(
                 block["index"],
                 block["previous_hash"],
-                block["transactions"]) for block in serialized_blocks]
+                block["transactions"],
+                block["timestamp"]) for block in serialized_blocks]
     
     def append_to_blocks(self, block:Block):
         self.__blocks = self.blocks
         self.__blocks.append(block)
         self.serialize_blocks()
-          
+    
+    @property
+    def is_valid(self):
+        last_block_hash = self.genesis_block.hash 
+        for block in self.blocks:
+            # Desconsideramos o genesis_block (indice 0)
+            if block.index:
+                if block.previous_hash != last_block_hash:
+                    return False
+                last_block_hash = block.hash
+        return True

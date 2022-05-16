@@ -4,11 +4,11 @@ from hashlib import sha256
 
 
 class Block:
-    def __init__(self, index:int, previous_hash:str, transactions:list) -> None:
+    def __init__(self, index:int, previous_hash:str, transactions:list, timestamp:datetime=None) -> None:
         self.index = index
         self.previous_hash = previous_hash
         self.transactions = transactions
-        self.timestamp = str(datetime.now())
+        self.timestamp = str(datetime.now()) if not timestamp else timestamp 
 
     @property
     def hash(self):
