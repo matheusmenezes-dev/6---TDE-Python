@@ -1,4 +1,5 @@
-from exceptions import CnpjInvalido, CpfInvalido, DocumentoInvalido
+from exceptions import CepInvalido, CnpjInvalido, CpfInvalido, DocumentoInvalido
+import httpx
 
 class CPF:
     def __init__(self, cpf:str) -> None:
@@ -16,24 +17,16 @@ class CPF:
             raise CpfInvalido()
     
     def validar_cpf(self):
-        # Qualquer exceção nesse bloco indica um cpf inválido
-        try:
-            cpf = str(self.__cpf)
-            # Aqui são feitos os checks de validez
-            if len(cpf) != 11: return False
-            
-            # Verificando se os ultimos digitos concordam
-            # com o algoritmo de verificação
-            if not self.algoritmo_validação(cpf): return False
-
-            return True
-        except:
-            return False
+        cpf = str(self.__cpf)
+        # Aqui são feitos os checks de validez
+        if len(cpf) != 11: return False
+        if not self.algoritmo_validação(cpf): return False
+        return True
     
     # Utilizando o algoritmo explicado em: 
     # https://dicasdeprogramacao.com.br/algoritmo-para-validar-cpf/
     def algoritmo_validação(self, cpf:str):
-        for indice_digito_comparador in [-2, 0, -1]:
+        for indice_digito_comparador in [-2, -1]:
             soma = 0
             multiplicador = 12 + indice_digito_comparador
             for digito in cpf[:indice_digito_comparador]:
@@ -51,7 +44,10 @@ class CNPJ:
     @property
     def eh_valido(self):
         cnpj = str(self.__cnpj)
-        return self.algoritmo_validação(cnpj)
+        # Aqui vão os checks de validação
+        if len(cnpj) != 14: return False
+        if not self.algoritmo_validação(cnpj): return False
+        return True
 
     @property
     def cnpj(self):
@@ -59,35 +55,105 @@ class CNPJ:
         raise CnpjInvalido()    
 
     def algoritmo_validação(self, cnpj:str):
-        # Verificando primeiro digito
+        # Aplicação do algoritmo explicado em:
+        # https://www.macoratti.net/alg_cnpj.htm
+        
         cnpj = str(cnpj)        
-        multiplicadores =  [5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-        digitos = cnpj[:-2]
-        soma = sum([multiplicadores[i] * int(digitos[i]) for i in range(len(digitos))])
-        resultado = soma % 11
-        resultado = 11 - resultado if resultado > 2 else 0
-        if resultado != int(cnpj[-2]): return False
-
-        # Verificando segundo digito
-        multiplicadores = [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
-        digitos = cnpj[:-1]
-        soma = sum([multiplicadores[i] * int(digitos[i]) for i in range(len(digitos))])
-        resultado = soma % 11
-        resultado = 11 - resultado if resultado > 2 else 0
-        if resultado != int(cnpj[-1]): return False
+        for digito_verificador in [-2, -1]:
+            multiplicadores =  [6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2]
+            digitos = cnpj[:digito_verificador]
+            soma = sum([multiplicadores[i + (-1 + (digito_verificador * -1))] * int(digitos[i]) for i in range(len(digitos))])
+            resultado = soma % 11
+            resultado = 11 - resultado if resultado > 2 else 0
+            if resultado != int(cnpj[digito_verificador]): return False
         return True
 
-class Documento:
-    def __init__(self, cpf:str=None, cnpj:str=None) -> None:
-        self.cpf = self.validar_cpf(cpf)
-        self.cnpj = self.validar_cnpj(cnpj)
+class CEP:
+    def __init__(self, cep:str) -> None:
+        self.__cep = str(cep)
+        self.__cep.replace('.', '').replace('-', '').replace(' ', '-')
+        response = httpx.get(f"https://viacep.com.br/ws/{self.__cep}/json/")
+        self.__eh_valido = False
+        if response.status_code == 200 and not "erro" in response.json():
+            self.__eh_valido = True
+        if self.__eh_valido:
+            dados = response.json()
+            self.__formatado = dados["cep"] 
+            self.__logradouro = dados["logradouro"]
+            self.__complemento = dados["complemento"]
+            self.__bairro = dados["bairro"]
+            self.__localidade = dados["localidade"]
+            self.__uf = dados["uf"]
+            self.__ibge = dados["ibge"]
+            self.__gia = dados["gia"]
+            self.__ddd = dados["ddd"]
+            self.__siafi = dados["siafi"]
 
-        if not (self.cnpj or self.cpf):
-            raise DocumentoInvalido("Não foi possivel validar um CPF ou CNPJ")
-        
-    def validar_cpf(self, cpf):
-        cpf:CPF = CPF(cpf)
-        return cpf if cpf.eh_valido else None
+    @property
+    def cep(self):
+        if self.eh_valido: return self.__formatado 
+        raise CepInvalido()
+
+    @property
+    def logradouro(self):
+        if self.eh_valido: return self.__logradouro 
+        raise CepInvalido()
+
+    @property
+    def complemento(self):
+        if self.eh_valido: return self.__complemento 
+        raise CepInvalido()
+
+    @property
+    def bairro(self):
+        if self.eh_valido: return self.__bairro 
+        raise CepInvalido()
+
+    @property
+    def localidade(self):
+        if self.eh_valido: return self.__localidade 
+        raise CepInvalido()
+
+    @property
+    def uf(self):
+        if self.eh_valido: return self.__uf 
+        raise CepInvalido()
+
+    @property
+    def ibge(self):
+        if self.eh_valido: return self.__ibge 
+        raise CepInvalido()
+
+    @property
+    def gia(self):
+        if self.eh_valido: return self.__gia 
+        raise CepInvalido()
+
+    @property
+    def ddd(self):
+        if self.eh_valido: return self.__ddd 
+        raise CepInvalido()
+
+    @property
+    def siafi(self):
+        if self.eh_valido: return self.__siafi 
+        raise CepInvalido()
+
+    @property
+    def eh_valido(self):
+        return self.__eh_valido
+    
+
+class Documento:
+    def __init__(self, documento:str) -> None:
+        documento = str(documento)
+        # Removendo possiveis caracteres que invalidariam as validaçõoes
+        documento.replace('.', '').replace('-', '').replace(' ', '')
+        cpf = CPF(documento)
+        if cpf.eh_valido: return cpf
+        cnpj = CNPJ(documento)
+        if cnpj.eh_valido: return cnpj
+        raise DocumentoInvalido("Não foi possivel validar um CPF ou CNPJ")
         
 
 class Cadastro:
